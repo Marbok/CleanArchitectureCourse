@@ -99,6 +99,5 @@ if __name__ == '__main__':
     with open(path, 'r') as f:
         for line in f:
             tokens = line.split()
-            print(tokens)
             command = commands.get(tokens[0])
             command(robot, tokens[1:])
