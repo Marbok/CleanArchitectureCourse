@@ -65,39 +65,56 @@ class Robot(object):
         self.state = state
         print("STATE {}".format(self.state))
 
-def start(robot, params):
-    robot.start()
+class Command(object):
+    def __init__(self, robot):
+        self.robot = robot
 
-def stop(robot, params):
-    robot.stop()
+class Start(Command):
+    def apply(self, params):
+        self.robot.start()
 
-def set(robot, params):
-    state = State[params[0].upper()]
-    robot.set(state)
+class Stop(Command):
+    def apply(self, params):
+        self.robot.stop()
 
-def turn(robot, params):
-    angle = int(params[0])
-    robot.turn(angle)
+class Set(Command):
+    def apply(self, params):
+        state = State[params[0].upper()]
+        self.robot.set(state)
 
-def move(robot, params):
-    dist = int(params[0])
-    robot.move(dist)
+class Move(Command):
+    def apply(self, params):
+        dist = int(params[0])
+        self.robot.move(dist)
 
-commands = {
-    "start": start,
-    "stop": stop,
-    "set": set,
-    "move": move,
-    "turn": turn
-}
+class Turn(Command):
+    def apply(self, params):
+        angle = int(params[0])
+        self.robot.turn(angle)
+
+class Parser(object):
+
+    def __init__(self, robot):
+        self.commands = {
+            "start": Start(robot),
+            "stop": Stop(robot),
+            "set": Set(robot),
+            "move": Move(robot),
+            "turn": Turn(robot)
+        }
+
+    def parse(self, line):
+        tokens = line.split()
+        return self.commands.get(tokens[0]), tokens[1:]
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Write path to script')
     path = sys.argv[1]
     robot = Robot()
+    parser = Parser(robot)
+
     with open(path, 'r') as f:
         for line in f:
-            tokens = line.split()
-            command = commands.get(tokens[0])
-            command(robot, tokens[1:])
+            cmd, params = parser.parse(line)
+            cmd.apply(params)
